@@ -1,39 +1,20 @@
-# LinkedIn Company Scraper
+# LinkedIn Company Scraper (Streamlit)
 
-**Streamlit + Selenium tool that looks up a company on LinkedIn and turns its
-public profile into a structured, ever-growing Excel dataset — no manual
-copy-pasting.**
-
-`Python` · `Streamlit` · `Selenium` · `Pandas` · `OpenPyXL`
-
-## Highlights
-- **Search-then-confirm flow** — searches LinkedIn for close name matches
-  and lets you pick the right company before scraping, instead of guessing
-  a single URL.
-- **Session validation, not blind scraping** — checks the cookie file is
-  well-formed and actually authenticated before touching a company page, so
-  a stale session fails fast with a clear message instead of quietly
-  scraping a login wall.
-- **Modular codebase** — UI (`app.py`), Selenium logic (`scraper.py`), and
-  cookie/session handling (`cookies_utils.py`) are separated behind a single
-  `config.py`, not one monolithic script.
-- **Idempotent by design** — writes to the Excel dataset only on an actual
-  scrape, deduplicates rows, and never double-writes on a Streamlit rerun.
+A small Streamlit tool that searches for a company on LinkedIn, opens its
+About page, and extracts: name, overview, industry, company size, type,
+headquarters, founding year, location, and associated member count. Each
+result is appended to a running Excel dataset (`linkedin_company_data.xlsx`)
+that can be downloaded from the app itself.
 
 ## Project structure
 ```
-linkedin-company-scraper/
-├── app.py              # Streamlit UI
-├── config.py            # settings: cookie path, Excel path, timeouts
-├── cookies_utils.py      # cookie loading, validation, login-state checks
-├── scraper.py             # Selenium: browser setup, search, field extraction
-├── requirements.txt
-├── .gitignore
-├── LICENSE
-└── README.md
+config.py          # all settings in one place (cookie path, Excel path, timeouts)
+cookies_utils.py    # cookie loading/validation and login-state checks
+scraper.py           # Selenium logic: browser setup, search, page extraction
+app.py                # Streamlit UI only
+requirements.txt
+packages.txt          # system packages (Chromium) for Streamlit Community Cloud
 ```
-
----
 
 ## Running locally
 Requires Chrome + a matching chromedriver on the machine.
@@ -72,6 +53,28 @@ it, add it to `.gitignore`, and treat it like a password, not sample data.**
 ## Headless mode
 The browser always runs headless — there's no toggle for it anymore, so
 behavior stays identical whether you run this locally or on a server.
+
+## Deploying on Streamlit Community Cloud
+Streamlit Cloud's containers don't ship a real browser, so `packages.txt`
+(included in this repo) tells it to install Chromium + chromedriver via
+apt:
+```
+chromium
+chromium-driver
+```
+`scraper.py` auto-detects the installed binaries; no extra config is
+needed. If it still can't find them, set `CHROME_BINARY_PATH` and
+`CHROMEDRIVER_PATH` in the app's secrets/environment to their installed
+paths (typically `/usr/bin/chromium` and `/usr/bin/chromedriver`).
+
+Two caveats worth knowing before relying on this in production:
+- Streamlit Cloud's shared IPs are more likely to trigger LinkedIn's
+  checkpoint/verification pages than a residential IP, independent of
+  anything in this code.
+- You'll also need to get `linkedin_cookies.pkl` onto the deployed
+  container — Streamlit Cloud's filesystem resets on redeploy, so this is
+  really only practical for local or self-hosted (e.g. a VPS) use rather
+  than a long-running cloud deployment.
 
 ## Notes
 - Automated scraping of LinkedIn **violates its Terms of Service** and can
