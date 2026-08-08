@@ -1,4 +1,7 @@
-
+"""
+Core Selenium logic: launching Chrome, searching LinkedIn for a company,
+and extracting fields from a company's About page.
+"""
 import re
 import time
 from datetime import datetime
@@ -16,6 +19,7 @@ from cookies_utils import human_delay
 
 
 class ScraperError(Exception):
+    """Anything that should stop the run and show a clear message in the UI."""
 
 
 def get_driver() -> webdriver.Chrome:
@@ -56,7 +60,7 @@ def search_companies(driver, name: str, max_results: int = MAX_SEARCH_RESULTS):
     try:
         driver.get(search_url)
     except TimeoutException:
-        raise ScraperError("ERROR.")
+        raise ScraperError("صفحة البحث في LinkedIn استغرقت وقت طويل عشان تفتح. جرّب تاني.")
 
     wait = WebDriverWait(driver, ELEMENT_WAIT_TIMEOUT)
     try:
@@ -200,7 +204,11 @@ def scrape_company_page(driver, company_url: str) -> dict:
         """
     )
 
-
+    # Location is a short address-like paragraph near the header, NOT the
+    # long overview text. Explicitly exclude the overview string and
+    # require the text to look like an address (short + contains a digit,
+    # e.g. a street number or postal code) instead of just containing a
+    # country name (which the overview text often does too).
     location = driver.execute_script(
         """
         const overview = arguments[0];
@@ -243,8 +251,8 @@ def scrape_company_page(driver, company_url: str) -> dict:
         # a different layout/challenge page instead of the real About page,
         # not that the company genuinely has zero fields.
         raise ScraperError(
-            "Error "
-            "Validation"
+            "الصفحة اتفتحت بس معرفتش أستخرج أي بيانات منها - ممكن LinkedIn يكون غيّر شكل الصفحة "
+            "أو عرض صفحة تحقق بدل صفحة الشركة."
         )
 
     return {
