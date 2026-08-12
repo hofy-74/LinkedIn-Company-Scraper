@@ -6,25 +6,6 @@ headquarters, founding year, location, and associated member count. Each
 result is appended to a running Excel dataset (`linkedin_company_data.xlsx`)
 that can be downloaded from the app itself.
 
-## Project structure
-```
-config.py          # all settings in one place (cookie path, Excel path, timeouts)
-cookies_utils.py    # cookie loading/validation and login-state checks
-scraper.py           # Selenium logic: browser setup, search, page extraction
-app.py                # Streamlit UI only
-requirements.txt
-packages.txt          # system packages (Chromium) for Streamlit Community Cloud
-```
-
-## Running locally
-Requires Chrome + a matching chromedriver on the machine.
-
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-The app opens at `http://localhost:8501`.
 
 ## Session cookies
 The app reads LinkedIn session cookies from a fixed path instead of an
